@@ -187,6 +187,7 @@ def main():
     screen = pygame.display.set_mode((600, 400))
     pygame.display.set_caption('Brickbust 1.0.0d')
     pygame.mouse.set_visible(0)
+    START_LIVES = 3
 
 #Create The Backgound
     background = pygame.Surface(screen.get_size())
@@ -201,70 +202,105 @@ def main():
     clock = pygame.time.Clock()
     ball = Ball()
     paddle = Paddle()
-    brickList = loadBrickList('l2.txt')
-    bricks = loadBricks(brickList)
-    numActiveBricks = len(bricks) * len(bricks[0])
-    allsprites = pygame.sprite.RenderPlain((paddle, ball, bricks))
-    lives = 3
+    lives = START_LIVES
+    menu = True
 
 #Main Loop
     going = True
     while going:
         clock.tick(30)
 
-        #Put Text On The Background, Centered
-        if pygame.font:
-            background.fill((250,250,250))
-            font = pygame.font.Font(None, 36)
-            s = "Lives: " + str(lives) + "   Bricks left: " + str(numActiveBricks)
-            text = font.render(s, 1, (10, 10, 10))
-            textpos = text.get_rect(centerx=background.get_width()/2)
-            textpos[1] = 100
-            background.blit(text, textpos)
+        if menu:
+            for event in pygame.event.get():
+                if menu and event.type == KEYDOWN and event.key == K_1:
+                    brickList = loadBrickList('l1.txt')
+                    bricks = loadBricks(brickList)
+                    numActiveBricks = len(bricks) * len(bricks[0])
+                    allsprites = pygame.sprite.RenderPlain((paddle, ball, bricks))
+                    menu = False
+                if menu and event.type == KEYDOWN and event.key == K_2:
+                    brickList = loadBrickList('l2.txt')
+                    bricks = loadBricks(brickList)
+                    numActiveBricks = len(bricks) * len(bricks[0])
+                    allsprites = pygame.sprite.RenderPlain((paddle, ball, bricks))
+                    menu = False
+                if menu and event.type == KEYDOWN and event.key == K_3:
+                    brickList = loadBrickList('l3.txt')
+                    bricks = loadBricks(brickList)
+                    numActiveBricks = len(bricks) * len(bricks[0])
+                    allsprites = pygame.sprite.RenderPlain((paddle, ball, bricks))
+                    menu = False
+                elif event.type == QUIT:
+                    going = False
+                elif event.type == KEYDOWN and event.key == K_ESCAPE:
+                    going = False
 
-        if ball.hits(paddle):
-            ball.paddleBounce(paddle)
-        for brickList in bricks:
-            for brick in brickList:
-                if ball.hits(brick):
-                    ball.brickBounce(brick)
-                    brick.weaken()
-                    if brick.strength == 0:
-                        numActiveBricks -= 1
+            if pygame.font:
+                background.fill((250,250,250))
+                font = pygame.font.Font(None, 36)
+                s = '> press 1, 2, or 3 to pick a level <'
+                text = font.render(s, 1, (10, 10, 10))
+                textpos = text.get_rect(centerx=background.get_width()/2)
+                textpos[1] = 100
+                background.blit(text, textpos)
+            screen.blit(background, (0, 0))
+            pygame.display.flip()
 
-        if ball.dies():
-            if lives > 1:
-                lives -= 1
-            else:
-                going = False
 
-        if numActiveBricks == 0:
-            text = font.render("You win!!", 1, (10, 10, 10))
-            textpos = text.get_rect(centerx=background.get_width()/2)
-            textpos[1] = 150
-            background.blit(text, textpos)
+        else:
+            #Handle Input Events
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    going = False
+                elif event.type == KEYDOWN and event.key == K_ESCAPE:
+                    going = False
+                elif not menu and event.type == MOUSEBUTTONDOWN:
+                    ball.go()
 
-        #Handle Input Events
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                going = False
-            elif event.type == KEYDOWN and event.key == K_ESCAPE:
-                going = False
-            elif event.type == MOUSEBUTTONDOWN:
-                ball.go()
+            #Put Text On The Background, Centered
+            if pygame.font:
+                background.fill((250,250,250))
+                font = pygame.font.Font(None, 36)
+                s = "Lives: " + str(lives) + "   Bricks left: " + str(numActiveBricks)
+                text = font.render(s, 1, (10, 10, 10))
+                textpos = text.get_rect(centerx=background.get_width()/2)
+                textpos[1] = 100
+                background.blit(text, textpos)
 
-        allsprites.update()
+            if ball.hits(paddle):
+                ball.paddleBounce(paddle)
+            for brickList in bricks:
+                for brick in brickList:
+                    if ball.hits(brick):
+                        ball.brickBounce(brick)
+                        brick.weaken()
+                        if brick.strength == 0:
+                            numActiveBricks -= 1
 
-        #Draw Everything
-        screen.blit(background, (0, 0))
-        allsprites.draw(screen)
-        pygame.display.flip()
+            if ball.dies():
+                if lives > 1:
+                    lives -= 1
+                else:
+                    lives = START_LIVES
+                    menu = True
+
+            if numActiveBricks == 0:
+                text = font.render("You win!!", 1, (10, 10, 10))
+                textpos = text.get_rect(centerx=background.get_width()/2)
+                textpos[1] = 150
+                background.blit(text, textpos)
+
+
+            allsprites.update()
+
+            #Draw Everything
+            screen.blit(background, (0, 0))
+            allsprites.draw(screen)
+            pygame.display.flip()
 
     pygame.quit()
 
 #Game Over
-
-# testing and stuff
 
 
 #this calls the 'main' function when this script is executed
